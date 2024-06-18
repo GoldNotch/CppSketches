@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.12)
+
+FUNCTION(SUBDIRLIST result curdir)
+  FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+  SET(dirlist "")
+  FOREACH(child ${children})
+    IF(IS_DIRECTORY ${curdir}/${child})
+      LIST(APPEND dirlist ${child})
+    ENDIF()
+  ENDFOREACH()
+  SET(${result} ${dirlist} PARENT_SCOPE)
+ENDFUNCTION()
+
+set(this_target "CppSketches")
+project(${this_target})
+set(APP_DIR ${PROJECT_SOURCE_DIR}/Build/${CONFIGURATION_NAME})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${APP_DIR}/Obj)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${APP_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${APP_DIR})
+
+SUBDIRLIST(SUBDIRS ${PROJECT_SOURCE_DIR}/src)
+
+FOREACH(subdir ${SUBDIRS})
+  ADD_SUBDIRECTORY(src/${subdir})
+ENDFOREACH()

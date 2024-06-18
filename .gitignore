@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Visual Studio/ Visual Studio Code
+.vs/*
+# JetBrains IDEs
+.idea/*
+
+Build/*
+
+
