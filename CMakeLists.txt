@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.26)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 FUNCTION(SUBDIRLIST result curdir)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -10,6 +13,14 @@ FUNCTION(SUBDIRLIST result curdir)
   ENDFOREACH()
   SET(${result} ${dirlist} PARENT_SCOPE)
 ENDFUNCTION()
+
+Include(FetchContent)
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v3.4.0 # or a later release
+)
+FetchContent_MakeAvailable(Catch2)
 
 set(this_target "CppSketches")
 project(${this_target})

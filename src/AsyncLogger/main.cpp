@@ -7,20 +7,32 @@
 #include <chrono>
 #include <array>
 
+/// @brief interface for loggers
 struct ILogger
 {
     virtual ~ILogger() = default;
     virtual void Log(const std::string& msg) = 0;
 };
 
+/// @brief synchronous logger with slow Log implementation
+struct SyncLogger : public ILogger
+{
+    void Log(const std::string & msg) override
+    {
+        std::cout << msg << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+};
+
+/// @brief Asynchronous optimization for SyncLogger which doesn't block calling thread
 struct AsyncLogger : public ILogger
 {
     AsyncLogger()
-        : is_running(true)
+        : logger(new SyncLogger)
+        , is_running(true)
         , th([this] {ThreadMain(); })
-    {
-
-    }
+    {}
 
     ~AsyncLogger()
     {
@@ -38,6 +50,8 @@ struct AsyncLogger : public ILogger
 
     void Log(const std::string& msg) override
     {
+        std::cout << msg << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (is_running)
         {
             std::lock_guard<std::mutex> lk{ m };
@@ -47,6 +61,7 @@ struct AsyncLogger : public ILogger
     }
 
 private:
+    std::unique_ptr<ILogger> logger;
     bool is_running = false;
     std::queue<std::string> q;
 
@@ -56,6 +71,7 @@ private:
     std::thread th;
 
 private:
+
     void ThreadMain()
     {
         while (is_running)
@@ -64,7 +80,7 @@ private:
                 std::unique_lock<std::mutex> lk{m};
                 cv.wait(lk, [this]{return !is_running || !q.empty();});
                 if (!q.empty()){
-                    SyncLog(q.front());
+                    logger->Log(q.front());
                     q.pop();
                 }
             }
@@ -72,15 +88,9 @@ private:
 
         while (!q.empty())
         {
-            SyncLog(q.front());
+            logger->Log(q.front());
             q.pop();
         }
-    }
-
-    void SyncLog(const std::string& msg)
-    {
-        std::cout << msg << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 };
 
